@@ -13,17 +13,19 @@ param location string
 param principalId string = ''
 
 var resourceToken = toLower(uniqueString(subscription().id, name, location))
-var tags = { 'azd-env-name': name }
-var abbrs = loadJsonContent('abbreviations.json')
+
+var tags = {
+  'azd-env-name': name
+}
 
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: '${abbrs.resourcesResourceGroups}${name}'
+  name: '${name}-rg'
   location: location
   tags: tags
 }
 
-module resources 'resources.bicep' = {
-  name: 'resources'
+module resources './resources.bicep' = {
+  name: 'resources-${resourceToken}'
   scope: resourceGroup
   params: {
     location: location

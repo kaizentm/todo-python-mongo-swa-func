@@ -3,12 +3,12 @@ param principalId string = ''
 param resourceToken string
 param tags object
 
-var abbrs = loadJsonContent('abbreviations.json')
-
 resource web 'Microsoft.Web/staticSites@2021-03-01' = {
-  name: '${abbrs.webStaticSites}web-${resourceToken}'
+  name: 'stapp-web-${resourceToken}'
   location: location
-  tags: union(tags, { 'azd-service-name': 'web' })
+  tags: union(tags, {
+      'azd-service-name': 'web'
+    })
   sku: {
     name: 'Free'
     tier: 'Free'
@@ -19,9 +19,11 @@ resource web 'Microsoft.Web/staticSites@2021-03-01' = {
 }
 
 resource api 'Microsoft.Web/sites@2021-03-01' = {
-  name: '${abbrs.webSitesFunctions}api-${resourceToken}'
+  name: 'app-api-${resourceToken}'
   location: location
-  tags: union(tags, { 'azd-service-name': 'api' })
+  tags: union(tags, {
+      'azd-service-name': 'api'
+    })
   kind: 'functionapp,linux'
   properties: {
     serverFarmId: appServicePlan.id
@@ -34,7 +36,10 @@ resource api 'Microsoft.Web/sites@2021-03-01' = {
       ftpsState: 'FtpsOnly'
       use32BitWorkerProcess: false
       cors: {
-        allowedOrigins: [ 'https://ms.portal.azure.com', 'https://${web.properties.defaultHostname}' ]
+        allowedOrigins: [
+          'https://ms.portal.azure.com'
+          'https://${web.properties.defaultHostname}'
+        ]
       }
     }
     clientAffinityEnabled: false
@@ -48,14 +53,14 @@ resource api 'Microsoft.Web/sites@2021-03-01' = {
   resource appSettings 'config' = {
     name: 'appsettings'
     properties: {
-      APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsightsResources.outputs.APPLICATIONINSIGHTS_CONNECTION_STRING
-      AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
-      FUNCTIONS_EXTENSION_VERSION: '~4'
-      FUNCTIONS_WORKER_RUNTIME: 'python'
-      SCM_DO_BUILD_DURING_DEPLOYMENT: 'true'
-      AZURE_COSMOS_CONNECTION_STRING_KEY: 'AZURE-COSMOS-CONNECTION-STRING'
-      AZURE_COSMOS_DATABASE_NAME: cosmos::database.name
-      AZURE_KEY_VAULT_ENDPOINT: keyVault.properties.vaultUri
+      'APPLICATIONINSIGHTS_CONNECTION_STRING': applicationInsightsResources.outputs.APPLICATIONINSIGHTS_CONNECTION_STRING
+      'AzureWebJobsStorage': 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
+      'FUNCTIONS_EXTENSION_VERSION': '~4'
+      'FUNCTIONS_WORKER_RUNTIME': 'python'
+      'SCM_DO_BUILD_DURING_DEPLOYMENT': 'true'
+      'AZURE_COSMOS_CONNECTION_STRING_KEY': 'AZURE-COSMOS-CONNECTION-STRING'
+      'AZURE_COSMOS_DATABASE_NAME': cosmos::database.name
+      'AZURE_KEY_VAULT_ENDPOINT': keyVault.properties.vaultUri
     }
   }
 
@@ -85,7 +90,7 @@ resource api 'Microsoft.Web/sites@2021-03-01' = {
 }
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
-  name: '${abbrs.webServerFarms}${resourceToken}'
+  name: 'plan-${resourceToken}'
   location: location
   tags: tags
   sku: {
@@ -101,7 +106,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
 }
 
 resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
-  name: '${abbrs.keyVaultVaults}${resourceToken}'
+  name: 'keyvault${resourceToken}'
   location: location
   tags: tags
   properties: {
@@ -144,7 +149,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
 }
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-03-01-preview' = {
-  name: '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
+  name: 'log-${resourceToken}'
   location: location
   tags: tags
   properties: any({
@@ -158,8 +163,8 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-03
   })
 }
 
-module applicationInsightsResources 'applicationinsights.bicep' = {
-  name: 'applicationinsights-resources'
+module applicationInsightsResources './applicationinsights.bicep' = {
+  name: 'applicationinsights-${resourceToken}'
   params: {
     resourceToken: resourceToken
     location: location
@@ -169,7 +174,7 @@ module applicationInsightsResources 'applicationinsights.bicep' = {
 }
 
 resource storage 'Microsoft.Storage/storageAccounts@2021-09-01' = {
-  name: '${abbrs.storageStorageAccounts}${resourceToken}'
+  name: 'stor${resourceToken}'
   location: location
   tags: tags
   kind: 'StorageV2'
@@ -187,7 +192,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-09-01' = {
 }
 
 resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2021-10-15' = {
-  name: '${abbrs.documentDBDatabaseAccounts}${resourceToken}'
+  name: 'cosmos-${resourceToken}'
   kind: 'MongoDB'
   location: location
   tags: tags
