@@ -36,16 +36,26 @@
             },
             "problemMatcher": []
         },
-
         {
             "label": "Start API",
             "type": "dotenv",
             "targetTasks": [
                 "Restore API",
-                "API uvicorn launch"
+                "Start Functions"
             ],
             "file": "${input:dotEnvFilePath}"
         },
+		{
+            "label": "Start Functions",
+			"type": "func",
+			"command": "host start --port 3100 --cors *",
+			"problemMatcher": "$func-python-watch",
+			"isBackground": true,
+			"dependsOn": "Restore API",
+            "options": {
+                "cwd": "./src/api"
+            }
+		},
         {
             "label": "Restore API",
             "type": "shell",
@@ -55,23 +65,6 @@
             },
             "problemMatcher": []
         },
-        {
-            "label": "API uvicorn launch",
-            "detail": "Helper task--use 'Start API' task to ensure environment is set up correctly",
-            "type": "shell",
-            "command": "${workspaceFolder}/src/api/api_env/bin/uvicorn todo.app:app --port 3100 --reload",
-            "options": {
-                "cwd": "${workspaceFolder}/src/api/"
-            },
-            "windows": {
-                "command": "${workspaceFolder}/src/api/api_env/scripts/uvicorn todo.app:app --port 3100 --reload"
-            },
-            "presentation": {
-                "panel": "dedicated",
-            },
-            "problemMatcher": []
-        },
-
         {
             "label": "Start API and Web",
             "dependsOn":[
